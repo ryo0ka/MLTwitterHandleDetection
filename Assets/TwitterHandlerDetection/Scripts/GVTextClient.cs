@@ -20,6 +20,10 @@ namespace TwitterHandlerDetection
 
 		public async UniTask<GVEntityAnnotation> Annotate(byte[] image)
 		{
+			await UniTask.SwitchToThreadPool();
+
+			string imageBase64 = Convert.ToBase64String(image);
+
 			var requestData = new GVRequestBody
 			{
 				Requests = new[]
@@ -28,7 +32,7 @@ namespace TwitterHandlerDetection
 					{
 						Image = new GVImage
 						{
-							Content = Convert.ToBase64String(image),
+							Content = imageBase64,
 						},
 
 						Features = new[]
@@ -45,6 +49,8 @@ namespace TwitterHandlerDetection
 			string url = $"{UrlTemplate}{_credentials.ApiKey}";
 			var requestDataJson = JsonConvert.SerializeObject(requestData);
 
+			await UniTask.SwitchToMainThread();
+
 			using (var req = UnityWebRequest.Put(url, requestDataJson))
 			{
 				// Counter bug: UnityWebRequest.POST() will URL-encode Base64 data
@@ -59,6 +65,8 @@ namespace TwitterHandlerDetection
 					throw new Exception($"Failed request ({req.responseCode}): '{req.error}', {responseText}");
 				}
 
+				await UniTask.SwitchToThreadPool();
+
 				var body = JsonConvert.DeserializeObject<GVAnnotateImageResponseBody>(responseText);
 				GVAnnotateImageResponse response = null;
 				if (!body.Responses?.TryGetFirstValue(out response) ?? false)
@@ -71,6 +79,8 @@ namespace TwitterHandlerDetection
 				{
 					throw new Exception("Received null or empty annotations");
 				}
+
+				await UniTask.SwitchToMainThread();
 
 				return annotation;
 			}

@@ -1,47 +1,75 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace TwitterHandlerDetection.Demo
 {
 	public class HandleListView : MonoBehaviour
 	{
 		[SerializeField]
-		GameObject _itemTemplate;
+		HandleListItemView _itemTemplate;
 
 		[SerializeField]
 		Transform _root;
 
-		List<GameObject> _items;
+		int _selectedIndex;
+		List<HandleListItemView> _items;
+		IListInputHandler _listHandler;
 
 		public event Action<string> OnHandleSelected;
 
 		void Awake()
 		{
-			_items = new List<GameObject>();
-			_itemTemplate.SetActive(false);
+			_selectedIndex = 0;
+			_items = new List<HandleListItemView>();
+
+			_listHandler = Application.isEditor
+				? (IListInputHandler) new EditorListInputHandler()
+				: (IListInputHandler) new MLListInputHandler();
 		}
 
-		public void UpdateList(IEnumerable<string> handles)
+		void Start()
 		{
-			_items.ForEach(Destroy);
+			_itemTemplate.gameObject.SetActive(false);
+
+			_listHandler.OnIndexDeltaUpdated += delta =>
+			{
+				_selectedIndex += delta;
+				UpdateSelectionView();
+			};
+
+			_listHandler.OnDecisionIntended += () =>
+			{
+				if (_selectedIndex >= _items.Count) return;
+				
+				string selectedHandle = _items[_selectedIndex].Handle;
+				OnHandleSelected?.Invoke(selectedHandle);
+			};
+		}
+
+		public void SetHandles(IEnumerable<string> handles)
+		{
+			_items.ForEach(i => Destroy(i.gameObject));
 			_items.Clear();
 
 			foreach (string handle in handles)
 			{
 				var item = Instantiate(_itemTemplate, _root);
-
-				var label = item.GetComponentInChildren<Text>();
-				var button = item.GetComponentInChildren<Button>();
-
-				label.text = handle;
-				button.onClick.AddListener(() =>
-				{
-					OnHandleSelected?.Invoke(handle);
-				});
-
+				item.gameObject.SetActive(true);
+				item.SetHandle(handle);
 				_items.Add(item);
+			}
+
+			UpdateSelectionView();
+		}
+
+		void UpdateSelectionView()
+		{
+			_selectedIndex = Mathf.Clamp(_selectedIndex, 0, _items.Count - 1);
+
+			for (var i = 0; i < _items.Count; i++)
+			{
+				_items[i].SetSelected(i == _selectedIndex);
 			}
 		}
 	}

@@ -1,4 +1,5 @@
 using UniRx.Async;
+using UnityEngine;
 
 namespace TwitterHandlerDetection
 {
@@ -7,5 +8,6 @@ namespace TwitterHandlerDetection
 		void Enable();
 		void Disable();
 		UniTask<byte[]> Capture();
+		Texture2D GetPreviewTexture();
 	}
 }

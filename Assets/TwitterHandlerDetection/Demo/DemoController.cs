@@ -21,10 +21,12 @@ namespace TwitterHandlerDetection.Demo
 		[SerializeField]
 		RawImage _captureImage;
 
+		[SerializeField]
+		HandleListView _handleList;
+
 		ICaptureDevice _captureDevice;
 		GVTextClient _visionTextClient;
 		TwitterHandleInterpreter _textInterpreter;
-		Texture2D _captureTexture;
 
 		void Start()
 		{
@@ -44,21 +46,19 @@ namespace TwitterHandlerDetection.Demo
 			_visionTextClient = new GVTextClient(_credentials);
 			_textInterpreter = new TwitterHandleInterpreter();
 
-			_captureTexture = new Texture2D(2, 2);
-			_captureImage.texture = _captureTexture;
+			_handleList.OnHandleSelected += handle =>
+			{
+				OnHandleSelected(handle);
+			};
 
 			_captureDevice.Enable();
+			_captureImage.texture = _captureDevice.GetPreviewTexture();
 
 			while (this)
 			{
 				DateTime captureStart = DateTime.Now;
-				
+
 				byte[] image = await _captureDevice.Capture();
-
-				await UniTask.SwitchToMainThread();
-
-				_captureTexture.LoadImage(image);
-				_captureTexture.Apply();
 
 				TimeSpan captureTime = DateTime.Now - captureStart;
 				DateTime annotateStart = DateTime.Now;
@@ -71,10 +71,11 @@ namespace TwitterHandlerDetection.Demo
 				}
 
 				string text = annotation.Description;
-				
+
 				bool foundAnew = _textInterpreter.Interpret(text);
 
 				_handleText.text = string.Join("\n", _textInterpreter.Handles);
+				_handleList.SetHandles(_textInterpreter.Handles);
 
 				TimeSpan annotateTime = DateTime.Now - annotateStart;
 
@@ -89,6 +90,11 @@ namespace TwitterHandlerDetection.Demo
 		{
 			_captureDevice.Disable();
 			_textInterpreter.Clear();
+		}
+
+		void OnHandleSelected(string handle)
+		{
+			Debug.Log(handle);
 		}
 	}
 }

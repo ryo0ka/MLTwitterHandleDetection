@@ -1,0 +1,22 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+int _Width;
+int _Height;
+Texture2D<float4> _SrcTex;
+RWStructuredBuffer<float> _DstBuffer;
+
+[numthreads(1,1,1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    uint2 c = id.xy;
+    
+    c.y = (_Height - 1) - c.y; // flip upside down
+    
+    float4 srcPix = _SrcTex[c];
+
+    int i = id.x + id.y * _Width;
+    _DstBuffer[i * 3 + 0] = lerp(0, 255, srcPix.r);
+    _DstBuffer[i * 3 + 1] = lerp(0, 255, srcPix.g);
+    _DstBuffer[i * 3 + 2] = lerp(0, 255, srcPix.b);
+}

@@ -25,7 +25,7 @@ namespace TwitterHandlerDetection
 			MLCamera.Stop();
 		}
 
-		public Texture2D GetPreviewTexture() => _previewTexture;
+		public Texture GetPreviewTexture() => _previewTexture;
 
 		public async UniTask<byte[]> Capture()
 		{

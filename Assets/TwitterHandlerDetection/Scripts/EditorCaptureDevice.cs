@@ -6,7 +6,7 @@ namespace TwitterHandlerDetection
 {
 	public class EditorCaptureDevice : ICaptureDevice
 	{
-		const string ImageAssetPath = "sample";
+		const string ImageAssetPath = "desktop_close";
 
 		Texture2D _texture;
 		byte[] _image;
@@ -27,7 +27,7 @@ namespace TwitterHandlerDetection
 		{
 		}
 
-		public Texture2D GetPreviewTexture() => _texture;
+		public Texture GetPreviewTexture() => _texture;
 
 		public async UniTask<byte[]> Capture()
 		{

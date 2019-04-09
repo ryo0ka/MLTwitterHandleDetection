@@ -7,7 +7,7 @@ namespace TwitterHandlerDetection
 	{
 		void Enable();
 		void Disable();
+		Texture GetPreviewTexture();
 		UniTask<byte[]> Capture();
-		Texture2D GetPreviewTexture();
 	}
 }

@@ -61,11 +61,11 @@ namespace TwitterHandlerDetection
 			await UniTask.SwitchToThreadPool();
 
 			DateTime postStart = DateTime.Now;
-			PostProcess(_colors, _colorsPost);
+			PostProcess(_colors, _colorsPost, _width, _height);
 			TimeSpan postTime = DateTime.Now - postStart;
 
 			DateTime toJpgStart = DateTime.Now;
-			byte[] jpg = ToJPG(_colorsPost, 3, _width, _height);
+			byte[] jpg = ToJPG(_colorsPost, _width / 2, _height);
 			TimeSpan encodeTime = DateTime.Now - toJpgStart;
 
 			await UniTask.SwitchToMainThread();
@@ -77,20 +77,25 @@ namespace TwitterHandlerDetection
 			return jpg;
 		}
 
-		static void PostProcess(float[] src, byte[] dst)
+		static void PostProcess(float[] src, byte[] dst, int width, int height)
 		{
-			for (var i = 0; i < src.Length; i++)
+			int j = 0;
+			for (int i = 0; i < src.Length; i++)
 			{
-				dst[i] = (byte) src[i];
+				int p = (int) ((float) i / 3);
+				int x = p % width;
+				if (x < width / 2) continue; // dispose first half of width
+
+				dst[j++] = (byte) src[i];
 			}
 		}
 
-		static byte[] ToJPG(byte[] tex, int comp, int width, int height)
+		static byte[] ToJPG(byte[] tex, int width, int height)
 		{
 			JpegEncoder e = new JpegEncoder();
 			using (MemoryStream s = new MemoryStream())
 			{
-				e.Encode(tex, width, height, comp, 2, s);
+				e.Encode(tex, width, height, 3, 2, s);
 				return s.ToArray();
 			}
 		}

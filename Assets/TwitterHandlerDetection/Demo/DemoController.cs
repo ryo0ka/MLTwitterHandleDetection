@@ -16,7 +16,7 @@ namespace TwitterHandlerDetection.Demo
 		CredentialsStorage _credentials;
 
 		[SerializeField]
-		Text _handleText;
+		Text _annotateText;
 
 		[SerializeField]
 		RawImage _captureImage;
@@ -26,6 +26,12 @@ namespace TwitterHandlerDetection.Demo
 
 		[SerializeField]
 		HandleListView _handleList;
+
+		[SerializeField]
+		GameObject _captureIndicator;
+
+		[SerializeField]
+		GameObject _annotateIndicator;
 
 		ICaptureDevice _captureDevice;
 		GVTextClient _visionTextClient;
@@ -55,7 +61,7 @@ namespace TwitterHandlerDetection.Demo
 				OnHandleSelected(handle);
 			};
 
-			_jpgTexture = Texture2D.whiteTexture;
+			_jpgTexture = new Texture2D(1, 1);
 			_jpgImage.texture = _jpgTexture;
 
 			_captureDevice.Enable();
@@ -63,12 +69,17 @@ namespace TwitterHandlerDetection.Demo
 
 			while (this)
 			{
+				_captureIndicator.SetActive(true);
+
 				DateTime captureStart = DateTime.Now;
 				byte[] image = await _captureDevice.Capture();
 				TimeSpan captureTime = DateTime.Now - captureStart;
 
 				_jpgTexture.LoadImage(image);
 				_jpgTexture.Apply();
+
+				_captureIndicator.SetActive(false);
+				_annotateIndicator.SetActive(true);
 
 				DateTime annotateStart = DateTime.Now;
 				var annotation = await _visionTextClient.Annotate(image);
@@ -77,18 +88,24 @@ namespace TwitterHandlerDetection.Demo
 				Debug.Log($"Capture: {captureTime.TotalSeconds}, " +
 				          $"Annotate: {annotateTime.TotalSeconds}");
 
+				_annotateIndicator.SetActive(false);
+
 				if (annotation == null)
 				{
 					Debug.LogWarning("Received null text annotation");
+					_annotateText.text = "<null>";
 					continue;
 				}
 
 				string text = annotation.Description;
-				bool foundAnew = _textInterpreter.Interpret(text);
+				_annotateText.text = text.Replace("\n", " ");
 
-				Debug.Log($"Found anew: {foundAnew}");
-				
-				_handleText.text = string.Join("\n", _textInterpreter.Handles);
+				_textInterpreter.Clear();
+				if (_textInterpreter.Interpret(text))
+				{
+					Debug.Log("Found new handle(s)");
+				}
+
 				_handleList.SetHandles(_textInterpreter.Handles);
 			}
 		}

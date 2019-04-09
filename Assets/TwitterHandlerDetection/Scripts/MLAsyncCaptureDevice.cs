@@ -16,7 +16,7 @@ namespace TwitterHandlerDetection
 		int _width, _height;
 		int _kernel;
 		float[] _colors; // Intermediate texture (3 floats per pixel)
-		byte[] _colorsPost; // Intermediate texture (3 bytes per pixel)
+		byte[] _colorsPost; // Intermediate texture but half the width
 
 		public void Enable()
 		{
@@ -37,7 +37,7 @@ namespace TwitterHandlerDetection
 			_computeShader.SetBuffer(_kernel, "_DstBuffer", _computeBuffer);
 
 			_colors = new float[_width * _height * 3]; // 3 = RGB
-			_colorsPost = new byte[_width * _height * 3];
+			_colorsPost = new byte[_width * _height * 3 / 2]; // 2 = half width
 		}
 
 		public void Disable()
@@ -60,19 +60,14 @@ namespace TwitterHandlerDetection
 
 			await UniTask.SwitchToThreadPool();
 
-			DateTime postStart = DateTime.Now;
+			DateTime encStart = DateTime.Now;
 			PostProcess(_colors, _colorsPost, _width, _height);
-			TimeSpan postTime = DateTime.Now - postStart;
-
-			DateTime toJpgStart = DateTime.Now;
 			byte[] jpg = ToJPG(_colorsPost, _width / 2, _height);
-			TimeSpan encodeTime = DateTime.Now - toJpgStart;
+			TimeSpan encTime = DateTime.Now - encStart;
 
 			await UniTask.SwitchToMainThread();
 
-			Debug.Log("MLAsyncCaptureDevice.Capture() -- " +
-			          $"post: {postTime.TotalSeconds}, " +
-			          $"toJpg: {encodeTime.TotalSeconds}");
+			Debug.Log($"MLAsyncCaptureDevice.Capture() {encTime.TotalSeconds:0.0}");
 
 			return jpg;
 		}
@@ -95,7 +90,7 @@ namespace TwitterHandlerDetection
 			JpegEncoder e = new JpegEncoder();
 			using (MemoryStream s = new MemoryStream())
 			{
-				e.Encode(tex, width, height, 3, 2, s);
+				e.Encode(tex, width, height, 3, 1, s);
 				return s.ToArray();
 			}
 		}

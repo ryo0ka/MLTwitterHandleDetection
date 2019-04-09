@@ -10,7 +10,7 @@ namespace TwitterHandlerDetection
 
 		public TwitterHandleInterpreter()
 		{
-			_regex = new Regex("@([0-9a-zA-Z_]+)");
+			_regex = new Regex("@([0-9a-zA-Z_]{2,})");
 			_handles = new HashSet<string>();
 		}
 
@@ -26,8 +26,7 @@ namespace TwitterHandlerDetection
 			bool found = false;
 			foreach (Match match in _regex.Matches(text))
 			{
-				string handle = match.Value;
-				handle = handle.ToLower();
+				string handle = match.Value.ToLower();
 				found |= _handles.Add(handle);
 			}
 

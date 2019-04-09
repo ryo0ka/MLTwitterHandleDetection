@@ -85,8 +85,8 @@ namespace TwitterHandlerDetection.Demo
 				var annotation = await _visionTextClient.Annotate(image);
 				TimeSpan annotateTime = DateTime.Now - annotateStart;
 
-				Debug.Log($"Capture: {captureTime.TotalSeconds}, " +
-				          $"Annotate: {annotateTime.TotalSeconds}");
+				Debug.Log($"Capture: {captureTime.TotalSeconds:0.0}, " +
+				          $"Annotate: {annotateTime.TotalSeconds:0.0}");
 
 				_annotateIndicator.SetActive(false);
 
@@ -100,7 +100,6 @@ namespace TwitterHandlerDetection.Demo
 				string text = annotation.Description;
 				_annotateText.text = text.Replace("\n", " ");
 
-				_textInterpreter.Clear();
 				if (_textInterpreter.Interpret(text))
 				{
 					Debug.Log("Found new handle(s)");

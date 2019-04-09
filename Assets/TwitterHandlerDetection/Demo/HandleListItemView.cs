@@ -20,7 +20,7 @@ namespace TwitterHandlerDetection.Demo
 
 		public void SetSelected(bool selected)
 		{
-			_button.interactable = selected;
+			_button.interactable = true;//selected;
 		}
 	}
 }

@@ -1,11 +1,16 @@
 # MLTwitterHandleDetection
-Twitter username detection sample for Magic Leap.
+Twitter username detection sample for Magic Leap in Unity.
 
-Using Google Cloud Vision API, the demo app will recognize texts that the AR glasses are seeing & extract Twitter handles.
+Using Google Cloud Vision API, the demo will recognize Twitter handles that user is seeing.
 
-For now with the current ML1 device and reasonable WiFi connection, 
+Unresolved challenges in this demo: 
 
-1. Camera resolution is not sufficient for the best UX. Currently user will have to hold the text source (PC display or smartphone) very close to the AR glasses in order to recognize texts sufficiently. This can be resolved "over time" as AR glasses improve hardware-wise. Though, that could contribute to another bottleneck observed:
-2. Network latency or/and Cloud API's response speed is not sufficient for the best UX. With a 200mbps WiFi connection, Google Cloud Vision's REST API call takes ~2.5 secs per image of 960x1080 pixels.
+1. Camera resolution is not sufficiently large. User has to get very close to the text source (PC display or smartphone) in order for Google Vision to recognize texts on the display stably.
+2. Network latency or/and Cloud API's response speed is not sufficiently high in order to upload/process high-res images. One call overall takes ~2.5 secs per 960x1080 pixels on a stable 200mbps WiFi connection.
 
-Overall this feature is experimental for the current hardware situation and probably not ready for production yet.
+Some intermediate features that might be useful for you:
+
+1. Google Vision client for text recognition (`GVTextClient.cs`), hiccup-free, probably usable in any platforms (except WebGL), built on top of UniRx async/await framework for Unity 2018 and later.
+2. Async readback of Magic Leap camera feed (`MLAsyncCaptureDevice.cs`). The class uses Magic Leap's "camera preview" feature and a compute shader (`Demo/Resources/AsyncRead.compute`) to extract the camera's frames without causing a hiccup on UI thread. This approach can produce an image per ~5 frames, which is a good enough latency for cloud-based image recognition. This approach is more convenient than the "official" approach (`MLCaptureDevice.cs`) because it gives you a raw image instead of a JPEG, so that you can optimize the image (e.g. reduce dimension) for uploading to cloud.
+
+Feel free to reuse any part of the project under MIT license and ask any questions. Remember to hit Star above, and please Like/RT the demo on Twitter: https://twitter.com/ryoichirooka/status/1115499972294656000
